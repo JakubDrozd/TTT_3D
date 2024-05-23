@@ -131,7 +131,7 @@ namespace TicTacToe3DApp
         {
             int score = 0;
 
-            // Sprawdź, czy AI może wygrać
+            // Check if AI can win
             gameBoard[x, y, z] = CellState.AI;
             if (IsWinner(CellState.AI))
             {
@@ -139,7 +139,7 @@ namespace TicTacToe3DApp
             }
             gameBoard[x, y, z] = CellState.Empty;
 
-            // Sprawdź, czy AI musi zablokować wygraną gracza
+            // Check if AI needs to block player win
             gameBoard[x, y, z] = CellState.Opponent;
             if (IsWinner(CellState.Opponent))
             {
@@ -147,28 +147,76 @@ namespace TicTacToe3DApp
             }
             gameBoard[x, y, z] = CellState.Empty;
 
-            // Dodatkowe heurystyki
+            // Add additional heuristics
+            score += EvaluateBlockingMove(x, y, z, CellState.Opponent, 3) * 200;
+
             int center = Size / 2;
             if (x == center && y == center && z == center)
             {
-                score += 50; // Centrum kostki
+                score += 50; // Center of the cube
             }
             else if (x == center || y == center || z == center)
             {
-                score += 20; // Centrum dowolnej płaszczyzny
+                score += 20; // Center of any face or line
             }
 
             if (x == 0 || x == Size - 1 ||
                 y == 0 || y == Size - 1 ||
                 z == 0 || z == Size - 1)
             {
-                score += 10; // Krawędzie
+                score += 10; // Edges
             }
 
             score += CountPotentialLines(x, y, z, CellState.AI) * 10;
 
             return score;
         }
+
+        private int EvaluateBlockingMove(int x, int y, int z, CellState player, int targetLength)
+        {
+            int count = 0;
+            var directions = new List<(int, int, int)>
+    {
+        // Straight lines
+        (1, 0, 0), (0, 1, 0), (0, 0, 1),
+        // Diagonals on XY plane
+        (1, 1, 0), (-1, 1, 0),
+        // Diagonals on XZ plane
+        (1, 0, 1), (-1, 0, 1),
+        // Diagonals on YZ plane
+        (0, 1, 1), (0, -1, 1),
+        // 3D Diagonals
+        (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
+        (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
+    };
+
+            foreach (var dir in directions)
+            {
+                int lineCount = 1;
+                for (int i = 1; i < targetLength; i++)
+                {
+                    int newX = x + i * dir.Item1;
+                    int newY = y + i * dir.Item2;
+                    int newZ = z + i * dir.Item3;
+
+                    if (newX < 0 || newX >= Size || newY < 0 || newY >= Size || newZ < 0 || newZ >= Size)
+                        break;
+
+                    if (gameBoard[newX, newY, newZ] == player)
+                        lineCount++;
+                    else if (gameBoard[newX, newY, newZ] == CellState.Empty)
+                        continue;
+                    else
+                        break;
+                }
+
+                if (lineCount == targetLength)
+                    count++;
+            }
+
+            return count;
+        }
+
 
         private int CountPotentialLines(int x, int y, int z, CellState player)
         {
@@ -242,6 +290,7 @@ namespace TicTacToe3DApp
 
             return bestMove;
         }
+
 
         public void MakeMove(int x, int y, int z, CellState player)
         {
