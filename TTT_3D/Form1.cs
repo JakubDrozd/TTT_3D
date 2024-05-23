@@ -57,20 +57,40 @@ namespace TicTacToe3DApp
             int numRows;
             int numCols;
 
-            if (gridSize % 3 == 0)
+            switch (gridSize)
             {
-                numRows = 3;
-                numCols = gridSize / 3;
-            }
-            else if (gridSize % 2 == 0)
-            {
-                numRows = 2;
-                numCols = gridSize / 2;
-            }
-            else
-            {
-                numRows = 1;
-                numCols = gridSize;
+                case 3:
+                    numRows = 1;
+                    numCols = 3;
+                    break;
+                case 4:
+                    numRows = 2;
+                    numCols = 2;
+                    break;
+                case 5:
+                    numRows = 1;
+                    numCols = 5;
+                    break;
+                case 6:
+                    numRows = 2;
+                    numCols = 3;
+                    break;
+                case 7:
+                    numRows = 2;
+                    numCols = 4;
+                    break;
+                case 8:
+                    numRows = 2;
+                    numCols = 4;
+                    break;
+                case 9:
+                    numRows = 3;
+                    numCols = 3;
+                    break;
+                default:
+                    numRows = 1;
+                    numCols = gridSize;
+                    break;
             }
 
             tableLayoutPanel1.RowCount = numRows;
@@ -144,6 +164,17 @@ namespace TicTacToe3DApp
             }
         }
 
+        private Image LoadImageFromFile(string fileName)
+        {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            if (File.Exists(path))
+            {
+                return Image.FromFile(path);
+            }
+            return null;
+        }
+
+
         private void Button_Click(object sender, EventArgs e)
         {
             Button button = sender as Button;
@@ -154,14 +185,15 @@ namespace TicTacToe3DApp
             if (playerTurn)
             {
                 game.MakeMove(x, y, z, CellState.Opponent);
-                button.Text = "O";
+                button.Text = ""; // Usunięcie tekstu
                 button.Enabled = false;
-                button.BackColor = Color.FromArgb(144, 238, 144); // Pastelowy zielony
+                button.BackgroundImage = LoadImageFromFile("circle.png"); // Ustawienie tła na grafikę kółka
+                button.BackgroundImageLayout = ImageLayout.Stretch; // Dopasowanie grafiki do przycisku
 
-                var winningCoords = game.GetWinningCoordinates(CellState.Opponent);
-                if (winningCoords != null)
+                var opponentWinningCoords = game.GetWinningCoordinates(CellState.Opponent);
+                if (opponentWinningCoords != null)
                 {
-                    HighlightWinningLine(winningCoords);
+                    HighlightWinningLine(opponentWinningCoords);
                     ShowEndGameDialog("Player O wins!");
                     return;
                 }
@@ -178,14 +210,15 @@ namespace TicTacToe3DApp
                     if (bestMove != null)
                     {
                         game.MakeMove(bestMove.Item1, bestMove.Item2, bestMove.Item3, CellState.AI);
-                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Text = "X";
+                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Text = "";
                         buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Enabled = false;
-                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackColor = Color.FromArgb(255, 182, 193); // Pastelowy czerwony
+                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackgroundImage = LoadImageFromFile("cross.png"); // Ustawienie tła na grafikę krzyżyka
+                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackgroundImageLayout = ImageLayout.Stretch; // Dopasowanie grafiki do przycisku
 
-                        winningCoords = game.GetWinningCoordinates(CellState.AI);
-                        if (winningCoords != null)
+                        var aiWinningCoords = game.GetWinningCoordinates(CellState.AI);
+                        if (aiWinningCoords != null)
                         {
-                            HighlightWinningLine(winningCoords);
+                            HighlightWinningLine(aiWinningCoords);
                             ShowEndGameDialog("AI wins!");
                             return;
                         }
@@ -205,14 +238,15 @@ namespace TicTacToe3DApp
             else
             {
                 game.MakeMove(x, y, z, CellState.AI);
-                button.Text = "X";
+                button.Text = ""; // Usunięcie tekstu
                 button.Enabled = false;
-                button.BackColor = Color.FromArgb(255, 182, 193); // Pastelowy czerwony
+                button.BackgroundImage = LoadImageFromFile("cross.png"); // Ustawienie tła na grafikę krzyżyka
+                button.BackgroundImageLayout = ImageLayout.Stretch; // Dopasowanie grafiki do przycisku
 
-                var winningCoords = game.GetWinningCoordinates(CellState.AI);
-                if (winningCoords != null)
+                var aiWinningCoords = game.GetWinningCoordinates(CellState.AI);
+                if (aiWinningCoords != null)
                 {
-                    HighlightWinningLine(winningCoords);
+                    HighlightWinningLine(aiWinningCoords);
                     ShowEndGameDialog("Player X wins!");
                     return;
                 }
@@ -226,6 +260,7 @@ namespace TicTacToe3DApp
                 playerTurn = !playerTurn;
             }
         }
+
 
         private void ShowEndGameDialog(string message)
         {
@@ -254,11 +289,14 @@ namespace TicTacToe3DApp
                         buttons[x, y, z].Text = "";
                         buttons[x, y, z].Enabled = true;
                         buttons[x, y, z].BackColor = Color.White;
+                        buttons[x, y, z].BackgroundImage = null; // Usunięcie grafiki tła
                     }
                 }
             }
             playerTurn = true; // Zawsze zaczyna gracz
         }
+
+
 
     }
 }
