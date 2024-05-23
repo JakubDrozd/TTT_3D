@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace TicTacToe3DApp
@@ -22,10 +24,23 @@ namespace TicTacToe3DApp
 
             InitializeComponent();
             this.BackColor = Color.FromArgb(240, 248, 255); // Pastelowy kolor tła (AliceBlue)
+            this.Text = "Kółko i Krzyżyk [3D]"; // Tytuł paska tytułu
+            SetFormIcon();
             InitializeGame();
         }
 
-
+        private void SetFormIcon()
+        {
+            // Wczytaj ikonę z zasobów osadzonego pliku
+            var assembly = Assembly.GetExecutingAssembly();
+            using (Stream stream = assembly.GetManifestResourceStream("TicTacToe3DApp.icon.png"))
+            {
+                if (stream != null)
+                {
+                    this.Icon = new Icon(stream);
+                }
+            }
+        }
 
 
         private void InitializeGame()

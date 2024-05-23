@@ -44,9 +44,10 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "Form1";
-            this.Text = "Tic Tac Toe 3D";
+            this.Text = "Kółko i Krzyżyk [3D]";
             this.ResumeLayout(false);
         }
+
 
         #endregion
     }
