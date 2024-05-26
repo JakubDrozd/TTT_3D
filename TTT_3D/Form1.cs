@@ -116,22 +116,29 @@ namespace TicTacToe3DApp
             int numRows;
             int numCols;
 
-            if (gridSize % 3 == 0)
+            switch (gridSize)
             {
-                numRows = 3;
-                numCols = gridSize / 3;
+                case 6:
+                    numRows = 2;
+                    numCols = 3;
+                    break;
+                case 7:
+                    numRows = 2;
+                    numCols = 3;
+                    break;
+                case 8:
+                    numRows = 2;
+                    numCols = 4;
+                    break;
+                case 9:
+                    numRows = 3;
+                    numCols = 3;
+                    break;
+                default:
+                    numRows = 1;
+                    numCols = gridSize;
+                    break;
             }
-            else if (gridSize % 2 == 0)
-            {
-                numRows = 2;
-                numCols = gridSize / 2;
-            }
-            else
-            {
-                numRows = 1;
-                numCols = gridSize;
-            }
-
             tableLayoutPanel1.RowCount = numRows;
             tableLayoutPanel1.ColumnCount = numCols;
 
