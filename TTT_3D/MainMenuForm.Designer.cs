@@ -3,11 +3,6 @@
     partial class MainMenuForm
     {
         private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.Button btnPlay;
-        private System.Windows.Forms.RadioButton rbtnPlayerVsPlayer;
-        private System.Windows.Forms.RadioButton rbtnPlayerVsAI;
-        private System.Windows.Forms.NumericUpDown numericUpDownSize;
-        private System.Windows.Forms.Label lblSize;
 
         protected override void Dispose(bool disposing)
         {
@@ -18,98 +13,57 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
-            this.btnPlay = new System.Windows.Forms.Button();
-            this.rbtnPlayerVsPlayer = new System.Windows.Forms.RadioButton();
-            this.rbtnPlayerVsAI = new System.Windows.Forms.RadioButton();
-            this.numericUpDownSize = new System.Windows.Forms.NumericUpDown();
-            this.lblSize = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSize)).BeginInit();
+            this.btnPlayLocal = new System.Windows.Forms.Button();
+            this.btnHostGame = new System.Windows.Forms.Button();
+            this.btnJoinGame = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // btnPlay
+            // btnPlayLocal
             // 
-            this.btnPlay.Location = new System.Drawing.Point(120, 180);
-            this.btnPlay.Name = "btnPlay";
-            this.btnPlay.Size = new System.Drawing.Size(120, 30);
-            this.btnPlay.TabIndex = 0;
-            this.btnPlay.Text = "Play";
-            this.btnPlay.UseVisualStyleBackColor = true;
-            this.btnPlay.Click += new System.EventHandler(this.BtnPlay_Click);
+            this.btnPlayLocal.Location = new System.Drawing.Point(12, 12);
+            this.btnPlayLocal.Name = "btnPlayLocal";
+            this.btnPlayLocal.Size = new System.Drawing.Size(260, 40);
+            this.btnPlayLocal.TabIndex = 0;
+            this.btnPlayLocal.Text = "Play Locally";
+            this.btnPlayLocal.UseVisualStyleBackColor = true;
+            this.btnPlayLocal.Click += new System.EventHandler(this.BtnPlayLocal_Click);
             // 
-            // rbtnPlayerVsPlayer
+            // btnHostGame
             // 
-            this.rbtnPlayerVsPlayer.AutoSize = true;
-            this.rbtnPlayerVsPlayer.Location = new System.Drawing.Point(120, 60);
-            this.rbtnPlayerVsPlayer.Name = "rbtnPlayerVsPlayer";
-            this.rbtnPlayerVsPlayer.Size = new System.Drawing.Size(134, 24);
-            this.rbtnPlayerVsPlayer.TabIndex = 1;
-            this.rbtnPlayerVsPlayer.TabStop = true;
-            this.rbtnPlayerVsPlayer.Text = "Player vs Player";
-            this.rbtnPlayerVsPlayer.UseVisualStyleBackColor = true;
+            this.btnHostGame.Location = new System.Drawing.Point(12, 58);
+            this.btnHostGame.Name = "btnHostGame";
+            this.btnHostGame.Size = new System.Drawing.Size(260, 40);
+            this.btnHostGame.TabIndex = 1;
+            this.btnHostGame.Text = "Host Game";
+            this.btnHostGame.UseVisualStyleBackColor = true;
+            this.btnHostGame.Click += new System.EventHandler(this.BtnHostGame_Click);
             // 
-            // rbtnPlayerVsAI
+            // btnJoinGame
             // 
-            this.rbtnPlayerVsAI.AutoSize = true;
-            this.rbtnPlayerVsAI.Location = new System.Drawing.Point(120, 90);
-            this.rbtnPlayerVsAI.Name = "rbtnPlayerVsAI";
-            this.rbtnPlayerVsAI.Size = new System.Drawing.Size(114, 24);
-            this.rbtnPlayerVsAI.TabIndex = 2;
-            this.rbtnPlayerVsAI.TabStop = true;
-            this.rbtnPlayerVsAI.Text = "Player vs AI";
-            this.rbtnPlayerVsAI.UseVisualStyleBackColor = true;
-            // 
-            // numericUpDownSize
-            // 
-            this.numericUpDownSize.Location = new System.Drawing.Point(200, 120);
-            this.numericUpDownSize.Maximum = new decimal(new int[] {
-            9,
-            0,
-            0,
-            0});
-            this.numericUpDownSize.Minimum = new decimal(new int[] {
-            3,
-            0,
-            0,
-            0});
-            this.numericUpDownSize.Name = "numericUpDownSize";
-            this.numericUpDownSize.Size = new System.Drawing.Size(40, 26);
-            this.numericUpDownSize.TabIndex = 3;
-            this.numericUpDownSize.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-            // 
-            // lblSize
-            // 
-            this.lblSize.AutoSize = true;
-            this.lblSize.Location = new System.Drawing.Point(120, 122);
-            this.lblSize.Name = "lblSize";
-            this.lblSize.Size = new System.Drawing.Size(74, 20);
-            this.lblSize.TabIndex = 4;
-            this.lblSize.Text = "Grid Size:";
+            this.btnJoinGame.Location = new System.Drawing.Point(12, 104);
+            this.btnJoinGame.Name = "btnJoinGame";
+            this.btnJoinGame.Size = new System.Drawing.Size(260, 40);
+            this.btnJoinGame.TabIndex = 2;
+            this.btnJoinGame.Text = "Join Game";
+            this.btnJoinGame.UseVisualStyleBackColor = true;
+            this.btnJoinGame.Click += new System.EventHandler(this.BtnJoinGame_Click);
             // 
             // MainMenuForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(360, 240);
-            this.Controls.Add(this.lblSize);
-            this.Controls.Add(this.numericUpDownSize);
-            this.Controls.Add(this.rbtnPlayerVsAI);
-            this.Controls.Add(this.rbtnPlayerVsPlayer);
-            this.Controls.Add(this.btnPlay);
+            this.ClientSize = new System.Drawing.Size(284, 161);
+            this.Controls.Add(this.btnJoinGame);
+            this.Controls.Add(this.btnHostGame);
+            this.Controls.Add(this.btnPlayLocal);
             this.Name = "MainMenuForm";
             this.Text = "Main Menu";
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSize)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
+
         }
 
-        #endregion
+        private System.Windows.Forms.Button btnPlayLocal;
+        private System.Windows.Forms.Button btnHostGame;
+        private System.Windows.Forms.Button btnJoinGame;
     }
 }
