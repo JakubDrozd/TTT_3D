@@ -9,12 +9,13 @@ namespace TicTacToe3DApp
 {
     public partial class Form1 : Form
     {
-        private int gridSize;
-        private bool playerVsAI;
         private TicTacToe3D game;
         private Button[,,] buttons;
         private bool playerTurn;
-
+        private bool playerVsAI;
+        private int gridSize;
+        private Timer timer;
+        private int timeLeft;
 
         public Form1(int gridSize, bool playerVsAI)
         {
@@ -27,6 +28,7 @@ namespace TicTacToe3DApp
             this.Text = "Kółko i Krzyżyk [3D]"; // Tytuł paska tytułu
             SetFormIcon();
             InitializeGame();
+            InitializeTimer();
         }
 
         private void SetFormIcon()
@@ -42,12 +44,55 @@ namespace TicTacToe3DApp
             }
         }
 
+        private void InitializeTimer()
+        {
+            timer = new Timer();
+            timer.Interval = 1000; // 1 sekunda
+            timer.Tick += Timer_Tick;
+            timeLeft = 30; // 30 sekund na ruch
+            lblTimer.Text = $"Time: {timeLeft}";
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            if (timeLeft > 0)
+            {
+                timeLeft--;
+                lblTimer.Text = $"Time: {timeLeft}";
+            }
+            else
+            {
+                timer.Stop();
+                MessageBox.Show("Time's up! You lose!");
+                ResetGame(); // Można również dodać inne działanie, np. zakończenie gry
+            }
+        }
+
+        private void StartTimer()
+        {
+            timeLeft = 30; // Reset the timer
+            lblTimer.Text = $"Time: {timeLeft}";
+            timer.Start();
+        }
+
+        private void StopTimer()
+        {
+            timer.Stop();
+        }
 
         private void InitializeGame()
         {
             game = new TicTacToe3D(gridSize);
             buttons = new Button[gridSize, gridSize, gridSize];
             CreateBoard();
+        }
+
+        private void HighlightWinningLine(List<Tuple<int, int, int>> winningCoords)
+        {
+            foreach (var (x, y, z) in winningCoords)
+            {
+                buttons[x, y, z].BackColor = Color.Yellow;
+            }
         }
 
         private void CreateBoard()
@@ -57,40 +102,20 @@ namespace TicTacToe3DApp
             int numRows;
             int numCols;
 
-            switch (gridSize)
+            if (gridSize % 3 == 0)
             {
-                case 3:
-                    numRows = 1;
-                    numCols = 3;
-                    break;
-                case 4:
-                    numRows = 2;
-                    numCols = 2;
-                    break;
-                case 5:
-                    numRows = 1;
-                    numCols = 5;
-                    break;
-                case 6:
-                    numRows = 2;
-                    numCols = 3;
-                    break;
-                case 7:
-                    numRows = 2;
-                    numCols = 4;
-                    break;
-                case 8:
-                    numRows = 2;
-                    numCols = 4;
-                    break;
-                case 9:
-                    numRows = 3;
-                    numCols = 3;
-                    break;
-                default:
-                    numRows = 1;
-                    numCols = gridSize;
-                    break;
+                numRows = 3;
+                numCols = gridSize / 3;
+            }
+            else if (gridSize % 2 == 0)
+            {
+                numRows = 2;
+                numCols = gridSize / 2;
+            }
+            else
+            {
+                numRows = 1;
+                numCols = gridSize;
             }
 
             tableLayoutPanel1.RowCount = numRows;
@@ -133,11 +158,15 @@ namespace TicTacToe3DApp
                             Dock = DockStyle.Fill,
                             Margin = new Padding(1),
                             Tag = new Tuple<int, int, int>(x, y, z),
-                            BackColor = Color.White,
+                            BackColor = Color.FromArgb(240, 240, 240), // Łagodniejszy kolor
                             Font = new Font("Arial", 16, FontStyle.Bold),
                             FlatStyle = FlatStyle.Flat,
                             FlatAppearance = { BorderColor = Color.Black, BorderSize = 1 }
                         };
+
+                        buttons[x, y, z].FlatAppearance.MouseOverBackColor = Color.FromArgb(210, 210, 210);
+                        buttons[x, y, z].FlatAppearance.MouseDownBackColor = Color.FromArgb(180, 180, 180);
+
                         buttons[x, y, z].Click += Button_Click;
                         panel.Controls.Add(buttons[x, y, z], x, y);
                     }
@@ -146,82 +175,55 @@ namespace TicTacToe3DApp
                 tableLayoutPanel1.Controls.Add(panel, z % numCols, z / numCols);
             }
 
-            this.ClientSize = new Size(buttonSize * gridSize * numCols, buttonSize * gridSize * numRows);
+            this.ClientSize = new Size(buttonSize * gridSize * numCols, buttonSize * gridSize * numRows + 50);
         }
-
-
-
-
-        private void HighlightWinningLine(List<Tuple<int, int, int>> winningCoords)
-        {
-            foreach (var coord in winningCoords)
-            {
-                int x = coord.Item1;
-                int y = coord.Item2;
-                int z = coord.Item3;
-
-                buttons[x, y, z].BackColor = Color.Yellow;
-            }
-        }
-
-        private Image LoadImageFromFile(string fileName)
-        {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-            if (File.Exists(path))
-            {
-                return Image.FromFile(path);
-            }
-            return null;
-        }
-
 
         private void Button_Click(object sender, EventArgs e)
         {
+            StopTimer(); // Zatrzymaj timer przed przetworzeniem ruchu
+
             Button button = sender as Button;
             var (x, y, z) = (Tuple<int, int, int>)button.Tag;
 
             if (game.Board[x, y, z] != CellState.Empty) return;
 
-            if (playerTurn)
+            var currentPlayer = playerTurn ? CellState.Opponent : CellState.AI;
+            game.MakeMove(x, y, z, currentPlayer);
+
+            button.Text = currentPlayer == CellState.Opponent ? "O" : "X";
+            button.Enabled = false;
+            button.BackColor = currentPlayer == CellState.Opponent ? Color.FromArgb(144, 238, 144) : Color.FromArgb(255, 182, 193);
+
+            var winningCoords = game.GetWinningCoordinates(currentPlayer);
+            if (winningCoords != null)
             {
-                game.MakeMove(x, y, z, CellState.Opponent);
-                button.Text = ""; // Usunięcie tekstu
-                button.Enabled = false;
-                button.BackgroundImage = LoadImageFromFile("circle.png"); // Ustawienie tła na grafikę kółka
-                button.BackgroundImageLayout = ImageLayout.Stretch; // Dopasowanie grafiki do przycisku
+                HighlightWinningLine(winningCoords);
+                ShowEndGameDialog(currentPlayer == CellState.Opponent ? "Player O wins!" : "Player X wins!");
+                return;
+            }
 
-                var opponentWinningCoords = game.GetWinningCoordinates(CellState.Opponent);
-                if (opponentWinningCoords != null)
-                {
-                    HighlightWinningLine(opponentWinningCoords);
-                    ShowEndGameDialog("Player O wins!");
-                    return;
-                }
+            if (!game.IsMoveLeft())
+            {
+                ShowEndGameDialog("It's a draw!");
+                return;
+            }
 
-                if (!game.IsMoveLeft())
+            if (playerVsAI && currentPlayer == CellState.Opponent)
+            {
+                var bestMove = game.FindBestMove();
+                if (bestMove != null)
                 {
-                    ShowEndGameDialog("It's a draw!");
-                    return;
-                }
+                    game.MakeMove(bestMove.Item1, bestMove.Item2, bestMove.Item3, CellState.AI);
+                    buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Text = "X";
+                    buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Enabled = false;
+                    buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackColor = Color.FromArgb(255, 182, 193);
 
-                if (playerVsAI)
-                {
-                    var bestMove = game.FindBestMove();
-                    if (bestMove != null)
+                    winningCoords = game.GetWinningCoordinates(CellState.AI);
+                    if (winningCoords != null)
                     {
-                        game.MakeMove(bestMove.Item1, bestMove.Item2, bestMove.Item3, CellState.AI);
-                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Text = "";
-                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Enabled = false;
-                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackgroundImage = LoadImageFromFile("cross.png"); // Ustawienie tła na grafikę krzyżyka
-                        buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackgroundImageLayout = ImageLayout.Stretch; // Dopasowanie grafiki do przycisku
-
-                        var aiWinningCoords = game.GetWinningCoordinates(CellState.AI);
-                        if (aiWinningCoords != null)
-                        {
-                            HighlightWinningLine(aiWinningCoords);
-                            ShowEndGameDialog("AI wins!");
-                            return;
-                        }
+                        HighlightWinningLine(winningCoords);
+                        ShowEndGameDialog("AI wins!");
+                        return;
                     }
 
                     if (!game.IsMoveLeft())
@@ -230,37 +232,14 @@ namespace TicTacToe3DApp
                         return;
                     }
                 }
-                else
-                {
-                    playerTurn = !playerTurn;
-                }
             }
             else
             {
-                game.MakeMove(x, y, z, CellState.AI);
-                button.Text = ""; // Usunięcie tekstu
-                button.Enabled = false;
-                button.BackgroundImage = LoadImageFromFile("cross.png"); // Ustawienie tła na grafikę krzyżyka
-                button.BackgroundImageLayout = ImageLayout.Stretch; // Dopasowanie grafiki do przycisku
-
-                var aiWinningCoords = game.GetWinningCoordinates(CellState.AI);
-                if (aiWinningCoords != null)
-                {
-                    HighlightWinningLine(aiWinningCoords);
-                    ShowEndGameDialog("Player X wins!");
-                    return;
-                }
-
-                if (!game.IsMoveLeft())
-                {
-                    ShowEndGameDialog("It's a draw!");
-                    return;
-                }
-
                 playerTurn = !playerTurn;
             }
-        }
 
+            StartTimer(); // Uruchom timer dla kolejnego ruchu
+        }
 
         private void ShowEndGameDialog(string message)
         {
@@ -276,9 +255,10 @@ namespace TicTacToe3DApp
             }
         }
 
-
         private void ResetGame()
         {
+            StopTimer(); // Zatrzymaj timer przy resetowaniu gry
+
             game = new TicTacToe3D(gridSize);
             for (int z = 0; z < gridSize; z++)
             {
@@ -288,15 +268,13 @@ namespace TicTacToe3DApp
                     {
                         buttons[x, y, z].Text = "";
                         buttons[x, y, z].Enabled = true;
-                        buttons[x, y, z].BackColor = Color.White;
+                        buttons[x, y, z].BackColor = Color.FromArgb(240, 240, 240); // Łagodniejszy kolor
                         buttons[x, y, z].BackgroundImage = null; // Usunięcie grafiki tła
                     }
                 }
             }
             playerTurn = true; // Zawsze zaczyna gracz
+            StartTimer(); // Uruchom timer dla nowej gry
         }
-
-
-
     }
 }
