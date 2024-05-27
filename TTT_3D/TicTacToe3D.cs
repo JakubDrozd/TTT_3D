@@ -12,21 +12,24 @@ namespace TicTacToe3DApp
 
     class TicTacToe3D
     {
-        private int Size;
-        private const int inARowToWin = 5;
+        private const int MaxInARowToWin = 5;
+        private int inARowToWin;
+        private int gridSize;
         private CellState[,,] gameBoard;
 
         public CellState[,,] Board => gameBoard;
 
-        public TicTacToe3D(int size)
+        public TicTacToe3D(int gridSize)
         {
-            Size = size;
-            gameBoard = new CellState[Size, Size, Size];
-            for (int x = 0; x < Size; x++)
+            this.gridSize = gridSize;
+            inARowToWin = gridSize >= MaxInARowToWin ? MaxInARowToWin : gridSize;
+            gameBoard = new CellState[gridSize, gridSize, gridSize];
+
+            for (int x = 0; x < gridSize; x++)
             {
-                for (int y = 0; y < Size; y++)
+                for (int y = 0; y < gridSize; y++)
                 {
-                    for (int z = 0; z < Size; z++)
+                    for (int z = 0; z < gridSize; z++)
                     {
                         gameBoard[x, y, z] = CellState.Empty;
                     }
@@ -36,11 +39,11 @@ namespace TicTacToe3DApp
 
         public bool IsMoveLeft()
         {
-            for (int x = 0; x < Size; x++)
+            for (int x = 0; x < gridSize; x++)
             {
-                for (int y = 0; y < Size; y++)
+                for (int y = 0; y < gridSize; y++)
                 {
-                    for (int z = 0; z < Size; z++)
+                    for (int z = 0; z < gridSize; z++)
                     {
                         if (gameBoard[x, y, z] == CellState.Empty)
                             return true;
@@ -63,7 +66,7 @@ namespace TicTacToe3DApp
                 int newY = y + i * direction.dy;
                 int newZ = z + i * direction.dz;
 
-                if (newX < 0 || newX >= Size || newY < 0 || newY >= Size || newZ < 0 || newZ >= Size)
+                if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize || newZ < 0 || newZ >= gridSize)
                     return null;
 
                 if (gameBoard[newX, newY, newZ] != player)
@@ -104,11 +107,11 @@ namespace TicTacToe3DApp
 
         public List<Tuple<int, int, int>> GetWinningCoordinates(CellState player)
         {
-            for (int x = 0; x < Size; x++)
+            for (int x = 0; x < gridSize; x++)
             {
-                for (int y = 0; y < Size; y++)
+                for (int y = 0; y < gridSize; y++)
                 {
-                    for (int z = 0; z < Size; z++)
+                    for (int z = 0; z < gridSize; z++)
                     {
                         if (gameBoard[x, y, z] == player)
                         {
@@ -150,7 +153,7 @@ namespace TicTacToe3DApp
             // Add additional heuristics
             score += EvaluateBlockingMove(x, y, z, CellState.Opponent, 3) * 200;
 
-            int center = Size / 2;
+            int center = gridSize / 2;
             if (x == center && y == center && z == center)
             {
                 score += 50; // Center of the cube
@@ -160,9 +163,9 @@ namespace TicTacToe3DApp
                 score += 20; // Center of any face or line
             }
 
-            if (x == 0 || x == Size - 1 ||
-                y == 0 || y == Size - 1 ||
-                z == 0 || z == Size - 1)
+            if (x == 0 || x == gridSize - 1 ||
+                y == 0 || y == gridSize - 1 ||
+                z == 0 || z == gridSize - 1)
             {
                 score += 10; // Edges
             }
@@ -199,7 +202,7 @@ namespace TicTacToe3DApp
                     int newY = y + i * dir.Item2;
                     int newZ = z + i * dir.Item3;
 
-                    if (newX < 0 || newX >= Size || newY < 0 || newY >= Size || newZ < 0 || newZ >= Size)
+                    if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize || newZ < 0 || newZ >= gridSize)
                         break;
 
                     if (gameBoard[newX, newY, newZ] == player)
@@ -245,7 +248,7 @@ namespace TicTacToe3DApp
                     int newY = y + i * dir.Item2;
                     int newZ = z + i * dir.Item3;
 
-                    if (newX < 0 || newX >= Size || newY < 0 || newY >= Size || newZ < 0 || newZ >= Size)
+                    if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize || newZ < 0 || newZ >= gridSize)
                         break;
 
                     if (gameBoard[newX, newY, newZ] == player)
@@ -268,11 +271,11 @@ namespace TicTacToe3DApp
             int bestVal = int.MinValue;
             Tuple<int, int, int> bestMove = null;
 
-            for (int x = 0; x < Size; x++)
+            for (int x = 0; x < gridSize; x++)
             {
-                for (int y = 0; y < Size; y++)
+                for (int y = 0; y < gridSize; y++)
                 {
-                    for (int z = 0; z < Size; z++)
+                    for (int z = 0; z < gridSize; z++)
                     {
                         if (gameBoard[x, y, z] == CellState.Empty)
                         {
