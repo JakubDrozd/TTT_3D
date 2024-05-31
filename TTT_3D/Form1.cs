@@ -24,11 +24,17 @@ namespace TicTacToe3DApp
             playerTurn = true; // Zawsze zaczyna gracz
 
             InitializeComponent();
+            this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
             this.BackColor = Color.FromArgb(240, 248, 255); // Pastelowy kolor tła (AliceBlue)
             this.Text = "Kółko i Krzyżyk [3D]"; // Tytuł paska tytułu
             SetFormIcon();
             InitializeGame();
             InitializeTimer();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Application.Exit();
         }
 
         private void SetFormIcon()
