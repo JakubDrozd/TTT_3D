@@ -16,6 +16,8 @@ namespace TicTacToe3DApp
         private int inARowToWin;
         private int gridSize;
         private CellState[,,] gameBoard;
+        private const int MaxDepth = 5; // Możesz eksperymentować z tą wartością
+
 
         public CellState[,,] Board => gameBoard;
 
@@ -130,50 +132,7 @@ namespace TicTacToe3DApp
             return GetWinningCoordinates(player) != null;
         }
 
-        public int EvaluateMove(int x, int y, int z)
-        {
-            int score = 0;
 
-            // Check if AI can win
-            gameBoard[x, y, z] = CellState.AI;
-            if (IsWinner(CellState.AI))
-            {
-                score += 1000;
-            }
-            gameBoard[x, y, z] = CellState.Empty;
-
-            // Check if AI needs to block player win
-            gameBoard[x, y, z] = CellState.Opponent;
-            if (IsWinner(CellState.Opponent))
-            {
-                score += 500;
-            }
-            gameBoard[x, y, z] = CellState.Empty;
-
-            // Add additional heuristics
-            score += EvaluateBlockingMove(x, y, z, CellState.Opponent, 3) * 200;
-
-            int center = gridSize / 2;
-            if (x == center && y == center && z == center)
-            {
-                score += 50; // Center of the cube
-            }
-            else if (x == center || y == center || z == center)
-            {
-                score += 20; // Center of any face or line
-            }
-
-            if (x == 0 || x == gridSize - 1 ||
-                y == 0 || y == gridSize - 1 ||
-                z == 0 || z == gridSize - 1)
-            {
-                score += 10; // Edges
-            }
-
-            score += CountPotentialLines(x, y, z, CellState.AI) * 10;
-
-            return score;
-        }
 
         private int EvaluateBlockingMove(int x, int y, int z, CellState player, int targetLength)
         {
@@ -221,6 +180,8 @@ namespace TicTacToe3DApp
         }
 
 
+
+
         private int CountPotentialLines(int x, int y, int z, CellState player)
         {
             int count = 0;
@@ -266,10 +227,73 @@ namespace TicTacToe3DApp
             return count;
         }
 
-        public Tuple<int, int, int> FindBestMove()
+
+        private CellState? GetWinner()
         {
-            int bestVal = int.MinValue;
-            Tuple<int, int, int> bestMove = null;
+            if (GetWinningCoordinates(CellState.AI) != null)
+                return CellState.AI;
+            if (GetWinningCoordinates(CellState.Opponent) != null)
+                return CellState.Opponent;
+            return null;
+        }
+
+
+
+
+
+
+        public int Minimax(int depth, int maxDepth, bool isMaximizing, int alpha, int beta)
+        {
+            var winner = GetWinner();
+            if (winner == CellState.AI)
+                return 1000 - depth;
+            if (winner == CellState.Opponent)
+                return depth - 1000;
+            if (!IsMoveLeft() || depth >= maxDepth)
+                return 0;
+
+            var moves = GetPossibleMoves(isMaximizing);
+
+            if (isMaximizing)
+            {
+                int maxEval = int.MinValue;
+                foreach (var move in moves)
+                {
+                    gameBoard[move.Item1, move.Item2, move.Item3] = CellState.AI;
+                    int eval = Minimax(depth + 1, maxDepth, false, alpha, beta);
+                    gameBoard[move.Item1, move.Item2, move.Item3] = CellState.Empty;
+                    maxEval = Math.Max(maxEval, eval);
+                    alpha = Math.Max(alpha, eval);
+                    if (beta <= alpha)
+                    {
+                        break; // Cut-off
+                    }
+                }
+                return maxEval;
+            }
+            else
+            {
+                int minEval = int.MaxValue;
+                foreach (var move in moves)
+                {
+                    gameBoard[move.Item1, move.Item2, move.Item3] = CellState.Opponent;
+                    int eval = Minimax(depth + 1, maxDepth, true, alpha, beta);
+                    gameBoard[move.Item1, move.Item2, move.Item3] = CellState.Empty;
+                    minEval = Math.Min(minEval, eval);
+                    beta = Math.Min(beta, eval);
+                    if (beta <= alpha)
+                    {
+                        break; // Cut-off
+                    }
+                }
+                return minEval;
+            }
+        }
+
+
+        private List<Tuple<int, int, int>> GetPossibleMoves(bool isMaximizing)
+        {
+            var moves = new List<Tuple<int, int, int>>();
 
             for (int x = 0; x < gridSize; x++)
             {
@@ -279,20 +303,86 @@ namespace TicTacToe3DApp
                     {
                         if (gameBoard[x, y, z] == CellState.Empty)
                         {
-                            int moveVal = EvaluateMove(x, y, z);
-
-                            if (moveVal > bestVal)
-                            {
-                                bestMove = new Tuple<int, int, int>(x, y, z);
-                                bestVal = moveVal;
-                            }
+                            moves.Add(new Tuple<int, int, int>(x, y, z));
                         }
                     }
                 }
             }
 
+            // Sortowanie ruchów według heurystyki
+            if (isMaximizing)
+            {
+                moves.Sort((a, b) => EvaluateMove(b.Item1, b.Item2, b.Item3).CompareTo(EvaluateMove(a.Item1, a.Item2, a.Item3)));
+            }
+            else
+            {
+                moves.Sort((a, b) => EvaluateMove(a.Item1, a.Item2, a.Item3).CompareTo(EvaluateMove(b.Item1, b.Item2, b.Item3)));
+            }
+
+            return moves;
+        }
+
+        public int EvaluateMove(int x, int y, int z)
+        {
+            int score = 0;
+
+            // Preferowanie środkowych pozycji
+            int center = gridSize / 2;
+            if (x == center && y == center && z == center)
+            {
+                score += 3; // Preferuj centrum
+            }
+            else if (x == center || y == center || z == center)
+            {
+                score += 2; // Preferuj linie środkowe
+            }
+            else
+            {
+                score += 1; // Preferuj pozostałe
+            }
+
+            return score;
+        }
+
+
+
+
+        public Tuple<int, int, int> FindBestMove(int maxDepth)
+        {
+            int bestVal = int.MinValue;
+            Tuple<int, int, int> bestMove = null;
+
+            var moves = GetPossibleMoves(true);
+
+            foreach (var move in moves)
+            {
+                gameBoard[move.Item1, move.Item2, move.Item3] = CellState.AI;
+                int moveVal = Minimax(0, maxDepth, false, int.MinValue, int.MaxValue);
+                gameBoard[move.Item1, move.Item2, move.Item3] = CellState.Empty;
+
+                Console.WriteLine($"Move evaluated: ({move.Item1}, {move.Item2}, {move.Item3}) with value {moveVal}"); // Debug
+
+                if (moveVal > bestVal)
+                {
+                    bestMove = move;
+                    bestVal = moveVal;
+
+                    // Zatrzymaj, jeśli znajdziemy wygrywający ruch
+                    if (bestVal == 1000)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (bestMove != null)
+            {
+                Console.WriteLine($"Best move: ({bestMove.Item1}, {bestMove.Item2}, {bestMove.Item3}) with value {bestVal}"); // Debug
+            }
+
             return bestMove;
         }
+
 
 
         public void MakeMove(int x, int y, int z, CellState player)
