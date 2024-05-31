@@ -216,9 +216,10 @@ namespace TicTacToe3DApp
 
             if (playerVsAI && currentPlayer == CellState.Opponent)
             {
-                var bestMove = game.FindBestMove();
+                var bestMove = game.FindBestMove(2); // Ustawienie maxDepth na 2 dla szybszych obliczeń
                 if (bestMove != null)
                 {
+                    Console.WriteLine($"AI chose move: ({bestMove.Item1}, {bestMove.Item2}, {bestMove.Item3})"); // Debug
                     game.MakeMove(bestMove.Item1, bestMove.Item2, bestMove.Item3, CellState.AI);
                     buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Text = "X";
                     buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Enabled = false;
@@ -246,6 +247,8 @@ namespace TicTacToe3DApp
 
             StartTimer(); // Uruchom timer dla kolejnego ruchu
         }
+
+
 
         private void ShowEndGameDialog(string message)
         {
