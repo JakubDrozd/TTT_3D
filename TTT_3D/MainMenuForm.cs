@@ -20,4 +20,3 @@ namespace TicTacToe3DApp
         }
     }
 }
-    
