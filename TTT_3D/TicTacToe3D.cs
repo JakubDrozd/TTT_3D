@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TicTacToe3DApp
@@ -17,6 +18,8 @@ namespace TicTacToe3DApp
         private int inARowToWin;
         private int gridSize;
         private CellState[,,] gameBoard;
+        private Stopwatch stopwatch;
+        private const int MaxTime = 1000; // Max time in milliseconds for AI to make a decision
 
         public CellState[,,] Board => gameBoard;
 
@@ -25,6 +28,7 @@ namespace TicTacToe3DApp
             this.gridSize = gridSize;
             inARowToWin = gridSize >= MaxInARowToWin ? MaxInARowToWin : gridSize;
             gameBoard = new CellState[gridSize, gridSize, gridSize];
+            stopwatch = new Stopwatch();
 
             for (int x = 0; x < gridSize; x++)
             {
@@ -53,6 +57,63 @@ namespace TicTacToe3DApp
             }
             return false;
         }
+
+        private List<Tuple<int, int, int>> CheckForBlockingMove(CellState player, int requiredCount)
+        {
+            var directions = new List<(int, int, int)>
+    {
+        // Proste linie
+        (1, 0, 0), (0, 1, 0), (0, 0, 1),
+        // Przekątne na płaszczyźnie XY
+        (1, 1, 0), (-1, 1, 0),
+        // Przekątne na płaszczyźnie XZ
+        (1, 0, 1), (-1, 0, 1),
+        // Przekątne na płaszczyźnie YZ
+        (0, 1, 1), (0, -1, 1),
+        // Przekątne 3D
+        (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
+        (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
+    };
+
+            for (int x = 0; x < gridSize; x++)
+            {
+                for (int y = 0; y < gridSize; y++)
+                {
+                    for (int z = 0; z < gridSize; z++)
+                    {
+                        if (gameBoard[x, y, z] == player)
+                        {
+                            foreach (var dir in directions)
+                            {
+                                int count = 0;
+                                Tuple<int, int, int> emptyCell = null;
+                                for (int i = 0; i < inARowToWin; i++)
+                                {
+                                    int newX = x + i * dir.Item1;
+                                    int newY = y + i * dir.Item2;
+                                    int newZ = z + i * dir.Item3;
+
+                                    if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize || newZ < 0 || newZ >= gridSize)
+                                        break;
+
+                                    if (gameBoard[newX, newY, newZ] == player)
+                                        count++;
+                                    else if (gameBoard[newX, newY, newZ] == CellState.Empty)
+                                        emptyCell = new Tuple<int, int, int>(newX, newY, newZ);
+                                    else
+                                        break;
+                                }
+
+                                if (count == requiredCount && emptyCell != null)
+                                    return new List<Tuple<int, int, int>> { emptyCell };
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
 
         private List<Tuple<int, int, int>> IsLineComplete(int x, int y, int z, (int dx, int dy, int dz) direction, CellState player)
         {
@@ -131,81 +192,8 @@ namespace TicTacToe3DApp
             return GetWinningCoordinates(player) != null;
         }
 
-
-
-        private int EvaluateBlockingMove(int x, int y, int z, CellState player, int targetLength)
+        private List<Tuple<int, int, int>> GetCriticalMoves(CellState player, int requiredCount)
         {
-            int count = 0;
-            var directions = new List<(int, int, int)>
-    {
-        // Straight lines
-        (1, 0, 0), (0, 1, 0), (0, 0, 1),
-        // Diagonals on XY plane
-        (1, 1, 0), (-1, 1, 0),
-        // Diagonals on XZ plane
-        (1, 0, 1), (-1, 0, 1),
-        // Diagonals on YZ plane
-        (0, 1, 1), (0, -1, 1),
-        // 3D Diagonals
-        (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
-        (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
-    };
-
-            foreach (var dir in directions)
-            {
-                int lineCount = 1;
-                for (int i = 1; i < targetLength; i++)
-                {
-                    int newX = x + i * dir.Item1;
-                    int newY = y + i * dir.Item2;
-                    int newZ = z + i * dir.Item3;
-
-                    if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize || newZ < 0 || newZ >= gridSize)
-                        break;
-
-                    if (gameBoard[newX, newY, newZ] == player)
-                        lineCount++;
-                    else if (gameBoard[newX, newY, newZ] == CellState.Empty)
-                        continue;
-                    else
-                        break;
-                }
-
-                if (lineCount == targetLength)
-                    count++;
-            }
-
-            return count;
-        }
-
-
-        private int EvaluateBoard()
-        {
-            int score = 0;
-
-            // Sprawdź, czy AI wygrywa
-            if (IsWinner(CellState.AI))
-            {
-                score += 1000;
-            }
-
-            // Sprawdź, czy przeciwnik wygrywa
-            if (IsWinner(CellState.Opponent))
-            {
-                score -= 1000;
-            }
-
-            // Dodatkowe heurystyki mogą być dodane tutaj
-            // Np. ilość linii z potencjalną wygraną dla AI lub przeciwnika
-            score += CountPotentialLines(CellState.AI) * 10;
-            score -= CountPotentialLines(CellState.Opponent) * 10;
-
-            return score;
-        }
-
-        private int CountPotentialLines(CellState player)
-        {
-            int count = 0;
             var directions = new List<(int, int, int)>
     {
         (1, 0, 0), (0, 1, 0), (0, 0, 1),
@@ -215,6 +203,8 @@ namespace TicTacToe3DApp
         (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
         (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
     };
+
+            var criticalMoves = new List<Tuple<int, int, int>>();
 
             for (int x = 0; x < gridSize; x++)
             {
@@ -226,8 +216,9 @@ namespace TicTacToe3DApp
                         {
                             foreach (var dir in directions)
                             {
-                                int lineCount = 1;
-                                for (int i = 1; i < inARowToWin; i++)
+                                int count = 0;
+                                Tuple<int, int, int> emptyCell = null;
+                                for (int i = 0; i < inARowToWin; i++)
                                 {
                                     int newX = x + i * dir.Item1;
                                     int newY = y + i * dir.Item2;
@@ -237,26 +228,106 @@ namespace TicTacToe3DApp
                                         break;
 
                                     if (gameBoard[newX, newY, newZ] == player)
-                                        lineCount++;
+                                        count++;
                                     else if (gameBoard[newX, newY, newZ] == CellState.Empty)
-                                        continue;
+                                        emptyCell = new Tuple<int, int, int>(newX, newY, newZ);
                                     else
                                         break;
                                 }
 
-                                if (lineCount > 1)
-                                    count++;
+                                if (count == requiredCount && emptyCell != null)
+                                    criticalMoves.Add(emptyCell);
                             }
                         }
                     }
                 }
             }
 
-            return count;
+            return criticalMoves;
+        }
+
+
+        public int EvaluateMove(int x, int y, int z)
+        {
+            int score = 0;
+
+            // Preferowanie środkowych pozycji
+            int center = gridSize / 2;
+            if (x == center && y == center && z == center)
+            {
+                score += 3; // Preferuj centrum
+            }
+            else if (x == center || y == center || z == center)
+            {
+                score += 2; // Preferuj linie środkowe
+            }
+            else
+            {
+                score += 1; // Preferuj pozostałe
+            }
+
+            // Dodatkowa heurystyka dla blokowania przeciwnika
+            gameBoard[x, y, z] = CellState.Opponent;
+            if (IsWinner(CellState.Opponent))
+            {
+                score += 100;
+            }
+            gameBoard[x, y, z] = CellState.Empty;
+
+            // Sprawdzenie blokady dla przeciwnika z trzema elementami w kombinacji
+            var criticalMoves = GetCriticalMoves(CellState.Opponent, 3);
+            if (criticalMoves.Any(m => m.Item1 == x && m.Item2 == y && m.Item3 == z))
+            {
+                score += 50;
+            }
+
+            // Sprawdzenie blokady dla przeciwnika z czterema elementami w kombinacji
+            criticalMoves = GetCriticalMoves(CellState.Opponent, 4);
+            if (criticalMoves.Any(m => m.Item1 == x && m.Item2 == y && m.Item3 == z))
+            {
+                score += 200;
+            }
+
+            return score;
+        }
+
+
+
+        private List<Tuple<int, int, int>> GetOrderedMoves()
+        {
+            var moves = new List<Tuple<int, int, int>>();
+            var scoredMoves = new List<Tuple<int, int, int, int>>();
+
+            for (int x = 0; x < gridSize; x++)
+            {
+                for (int y = 0; y < gridSize; y++)
+                {
+                    for (int z = 0; z < gridSize; z++)
+                    {
+                        if (gameBoard[x, y, z] == CellState.Empty)
+                        {
+                            int score = EvaluateMove(x, y, z);
+                            scoredMoves.Add(new Tuple<int, int, int, int>(x, y, z, score));
+                        }
+                    }
+                }
+            }
+
+            scoredMoves = scoredMoves.OrderByDescending(move => move.Item4).ToList();
+
+            foreach (var move in scoredMoves)
+            {
+                moves.Add(new Tuple<int, int, int>(move.Item1, move.Item2, move.Item3));
+            }
+
+            return moves;
         }
 
         public int Minimax(int depth, int maxDepth, bool isMaximizing, int alpha, int beta)
         {
+            if (stopwatch.ElapsedMilliseconds > MaxTime)
+                return 0;
+
             var winner = GetWinner();
             if (winner == CellState.AI)
                 return 1000 - depth;
@@ -265,8 +336,7 @@ namespace TicTacToe3DApp
             if (!IsMoveLeft() || depth >= maxDepth)
                 return 0;
 
-            var moves = GetPossibleMoves();
-            moves = moves.OrderBy(a => Guid.NewGuid()).ToList(); // Randomize move order
+            var moves = GetOrderedMoves();
 
             if (isMaximizing)
             {
@@ -304,48 +374,27 @@ namespace TicTacToe3DApp
             }
         }
 
-        private List<Tuple<int, int, int>> GetPossibleMoves()
+        public Tuple<int, int, int> FindBestMove()
         {
-            var moves = new List<Tuple<int, int, int>>();
-            for (int x = 0; x < gridSize; x++)
+            stopwatch.Restart();
+            int maxDepth = 1;
+            Tuple<int, int, int> bestMove = null;
+
+            while (stopwatch.ElapsedMilliseconds < MaxTime)
             {
-                for (int y = 0; y < gridSize; y++)
+                var move = IterativeDeepening(maxDepth);
+                if (move != null)
                 {
-                    for (int z = 0; z < gridSize; z++)
-                    {
-                        if (gameBoard[x, y, z] == CellState.Empty)
-                        {
-                            moves.Add(new Tuple<int, int, int>(x, y, z));
-                        }
-                    }
+                    bestMove = move;
                 }
+                maxDepth++;
             }
-            return moves;
+
+            stopwatch.Stop();
+            return bestMove;
         }
 
-        public int EvaluateMove(int x, int y, int z)
-        {
-            int score = 0;
-
-            // Preferowanie środkowych pozycji
-            int center = gridSize / 2;
-            if (x == center && y == center && z == center)
-            {
-                score += 3; // Preferuj centrum
-            }
-            else if (x == center || y == center || z == center)
-            {
-                score += 2; // Preferuj linie środkowe
-            }
-            else
-            {
-                score += 1; // Preferuj pozostałe
-            }
-
-            return score;
-        }
-
-        public Tuple<int, int, int> FindBestMove(int maxDepth)
+        private Tuple<int, int, int> IterativeDeepening(int maxDepth)
         {
             int bestVal = int.MinValue;
             Tuple<int, int, int> bestMove = null;
@@ -364,8 +413,6 @@ namespace TicTacToe3DApp
 
                             moveVal += EvaluateMove(x, y, z); // Dodanie heurystyki
 
-                            Console.WriteLine($"Move evaluated: ({x}, {y}, {z}) with value {moveVal}"); // Debug
-
                             if (moveVal > bestVal)
                             {
                                 bestMove = new Tuple<int, int, int>(x, y, z);
@@ -382,11 +429,6 @@ namespace TicTacToe3DApp
                 }
             }
 
-            if (bestMove != null)
-            {
-                Console.WriteLine($"Best move: ({bestMove.Item1}, {bestMove.Item2}, {bestMove.Item3}) with value {bestVal}"); // Debug
-            }
-
             return bestMove;
         }
 
@@ -398,12 +440,6 @@ namespace TicTacToe3DApp
                 return CellState.Opponent;
             return CellState.Empty;
         }
-
-
-
-
-
-
 
         public void MakeMove(int x, int y, int z, CellState player)
         {
