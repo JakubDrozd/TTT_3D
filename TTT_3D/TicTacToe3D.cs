@@ -293,6 +293,7 @@ namespace TicTacToe3DApp
 
 
 
+
         private List<Tuple<int, int, int>> GetOrderedMoves()
         {
             var moves = new List<Tuple<int, int, int>>();
@@ -323,11 +324,9 @@ namespace TicTacToe3DApp
             return moves;
         }
 
+
         public int Minimax(int depth, int maxDepth, bool isMaximizing, int alpha, int beta)
         {
-            if (stopwatch.ElapsedMilliseconds > MaxTime)
-                return 0;
-
             var winner = GetWinner();
             if (winner == CellState.AI)
                 return 1000 - depth;
@@ -374,25 +373,47 @@ namespace TicTacToe3DApp
             }
         }
 
-        public Tuple<int, int, int> FindBestMove()
+
+
+
+        public Tuple<int, int, int> FindBestMove(int maxDepth)
         {
-            stopwatch.Restart();
-            int maxDepth = 1;
+            int bestVal = int.MinValue;
             Tuple<int, int, int> bestMove = null;
 
-            while (stopwatch.ElapsedMilliseconds < MaxTime)
+            for (int x = 0; x < gridSize; x++)
             {
-                var move = IterativeDeepening(maxDepth);
-                if (move != null)
+                for (int y = 0; y < gridSize; y++)
                 {
-                    bestMove = move;
+                    for (int z = 0; z < gridSize; z++)
+                    {
+                        if (gameBoard[x, y, z] == CellState.Empty)
+                        {
+                            gameBoard[x, y, z] = CellState.AI;
+                            int moveVal = Minimax(0, maxDepth, false, int.MinValue, int.MaxValue);
+                            gameBoard[x, y, z] = CellState.Empty;
+
+                            moveVal += EvaluateMove(x, y, z); // Dodanie heurystyki
+
+                            if (moveVal > bestVal)
+                            {
+                                bestMove = new Tuple<int, int, int>(x, y, z);
+                                bestVal = moveVal;
+
+                                // Zatrzymaj, jeśli znajdziemy wygrywający ruch
+                                if (bestVal == 1000)
+                                {
+                                    return bestMove;
+                                }
+                            }
+                        }
+                    }
                 }
-                maxDepth++;
             }
 
-            stopwatch.Stop();
             return bestMove;
         }
+
 
         private Tuple<int, int, int> IterativeDeepening(int maxDepth)
         {

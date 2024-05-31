@@ -216,7 +216,7 @@ namespace TicTacToe3DApp
 
             if (playerVsAI && currentPlayer == CellState.Opponent)
             {
-                var bestMove = game.FindBestMove();
+                var bestMove = game.FindBestMove(1);
                 if (bestMove != null)
                 {
                     Console.WriteLine($"AI chose move: ({bestMove.Item1}, {bestMove.Item2}, {bestMove.Item3})"); // Debug
