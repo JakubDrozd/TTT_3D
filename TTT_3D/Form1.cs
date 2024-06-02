@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using TicTacToe3DApp.TicTacToe3DApp;
 
 namespace TicTacToe3DApp
 {
@@ -21,14 +22,14 @@ namespace TicTacToe3DApp
         public Form1(int gridSize, bool playerVsAI)
         {
             this.gridSize = gridSize;
-            player1 = new HumanPlayer(CellState.Opponent);
+            player1 = new HumanPlayer(CellState.Opponent, "O");
             if (playerVsAI)
             {
-                player2 = new AIPlayer(CellState.AI);
+                player2 = new AIPlayer(CellState.AI, "X");
             }
             else
             {
-                player2 = new HumanPlayer(CellState.AI);
+                player2 = new HumanPlayer(CellState.AI, "X");
             }
             playerTurn = true; // Zawsze zaczyna gracz
 
@@ -119,8 +120,8 @@ namespace TicTacToe3DApp
 
             if (gridSize % 3 == 0)
             {
-                numRows = 3;
-                numCols = gridSize / 3;
+                numRows = gridSize / 3;
+                numCols = 3;
             }
             else if (gridSize % 2 == 0)
             {
@@ -200,20 +201,14 @@ namespace TicTacToe3DApp
             Button button = sender as Button;
             var (x, y, z) = (Tuple<int, int, int>)button.Tag;
 
-            if (game.Board[x, y, z] != CellState.Empty) return;
-
             Player currentPlayer = playerTurn ? player1 : player2;
-            game.MakeMove(x, y, z, currentPlayer.CellState);
-
-            button.Text = currentPlayer.CellState == CellState.Opponent ? "O" : "X";
-            button.Enabled = false;
-            button.BackColor = currentPlayer.CellState == CellState.Opponent ? System.Drawing.Color.FromArgb(144, 238, 144) : System.Drawing.Color.FromArgb(255, 182, 193);
+            currentPlayer.MakeMove(game, buttons, x, y, z);
 
             var winningCoords = game.GetWinningCoordinates(currentPlayer.CellState);
             if (winningCoords != null)
             {
                 HighlightWinningLine(winningCoords);
-                ShowEndGameDialog(currentPlayer.CellState == CellState.Opponent ? "Player O wins!" : "Player X wins!");
+                ShowEndGameDialog($"{currentPlayer.Sign} wins!");
                 return;
             }
 
