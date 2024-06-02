@@ -11,8 +11,9 @@ namespace TicTacToe3DApp
     {
         private TicTacToe3D game;
         private Button[,,] buttons;
+        private Player player1;
+        private Player player2;
         private bool playerTurn;
-        private bool playerVsAI;
         private int gridSize;
         private Timer timer;
         private int timeLeft;
@@ -20,12 +21,20 @@ namespace TicTacToe3DApp
         public Form1(int gridSize, bool playerVsAI)
         {
             this.gridSize = gridSize;
-            this.playerVsAI = playerVsAI;
+            player1 = new HumanPlayer(CellState.Opponent);
+            if (playerVsAI)
+            {
+                player2 = new AIPlayer(CellState.AI);
+            }
+            else
+            {
+                player2 = new HumanPlayer(CellState.AI);
+            }
             playerTurn = true; // Zawsze zaczyna gracz
 
             InitializeComponent();
             this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
-            this.BackColor = Color.FromArgb(240, 248, 255); // Pastelowy kolor tła (AliceBlue)
+            this.BackColor = System.Drawing.Color.FromArgb(240, 248, 255); // Pastelowy kolor tła (AliceBlue)
             this.Text = "Kółko i Krzyżyk [3D]"; // Tytuł paska tytułu
             SetFormIcon();
             InitializeGame();
@@ -193,18 +202,18 @@ namespace TicTacToe3DApp
 
             if (game.Board[x, y, z] != CellState.Empty) return;
 
-            var currentPlayer = playerTurn ? CellState.Opponent : CellState.AI;
-            game.MakeMove(x, y, z, currentPlayer);
+            Player currentPlayer = playerTurn ? player1 : player2;
+            game.MakeMove(x, y, z, currentPlayer.CellState);
 
-            button.Text = currentPlayer == CellState.Opponent ? "O" : "X";
+            button.Text = currentPlayer.CellState == CellState.Opponent ? "O" : "X";
             button.Enabled = false;
-            button.BackColor = currentPlayer == CellState.Opponent ? Color.FromArgb(144, 238, 144) : Color.FromArgb(255, 182, 193);
+            button.BackColor = currentPlayer.CellState == CellState.Opponent ? System.Drawing.Color.FromArgb(144, 238, 144) : System.Drawing.Color.FromArgb(255, 182, 193);
 
-            var winningCoords = game.GetWinningCoordinates(currentPlayer);
+            var winningCoords = game.GetWinningCoordinates(currentPlayer.CellState);
             if (winningCoords != null)
             {
                 HighlightWinningLine(winningCoords);
-                ShowEndGameDialog(currentPlayer == CellState.Opponent ? "Player O wins!" : "Player X wins!");
+                ShowEndGameDialog(currentPlayer.CellState == CellState.Opponent ? "Player O wins!" : "Player X wins!");
                 return;
             }
 
@@ -214,33 +223,25 @@ namespace TicTacToe3DApp
                 return;
             }
 
-            if (playerVsAI && currentPlayer == CellState.Opponent)
+            playerTurn = !playerTurn;
+
+            if (!playerTurn && player2 is AIPlayer)
             {
-                var bestMove = game.FindBestMove();
-                if (bestMove != null)
+                player2.MakeMove(game, buttons);
+                winningCoords = game.GetWinningCoordinates(player2.CellState);
+                if (winningCoords != null)
                 {
-                    game.MakeMove(bestMove.Item1, bestMove.Item2, bestMove.Item3, CellState.AI);
-                    buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Text = "X";
-                    buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].Enabled = false;
-                    buttons[bestMove.Item1, bestMove.Item2, bestMove.Item3].BackColor = Color.FromArgb(255, 182, 193);
-
-                    winningCoords = game.GetWinningCoordinates(CellState.AI);
-                    if (winningCoords != null)
-                    {
-                        HighlightWinningLine(winningCoords);
-                        ShowEndGameDialog("AI wins!");
-                        return;
-                    }
-
-                    if (!game.IsMoveLeft())
-                    {
-                        ShowEndGameDialog("It's a draw!");
-                        return;
-                    }
+                    HighlightWinningLine(winningCoords);
+                    ShowEndGameDialog("AI wins!");
+                    return;
                 }
-            }
-            else
-            {
+
+                if (!game.IsMoveLeft())
+                {
+                    ShowEndGameDialog("It's a draw!");
+                    return;
+                }
+
                 playerTurn = !playerTurn;
             }
 
