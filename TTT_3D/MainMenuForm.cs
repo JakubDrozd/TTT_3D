@@ -14,7 +14,8 @@ namespace TicTacToe3DApp
         {
             int gridSize = (int)numericUpDownSize.Value;
             bool playerVsAI = rbtnPlayerVsAI.Checked;
-            Form1 gameForm = new Form1(gridSize, playerVsAI);
+            bool aiVsAiMode = false;
+            Form1 gameForm = new Form1(gridSize, playerVsAI, aiVsAiMode);
             gameForm.Show();
             this.Hide();
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using TicTacToe3DApp.TicTacToe3DApp;
 
@@ -16,20 +17,30 @@ namespace TicTacToe3DApp
         private Player player2;
         private bool playerTurn;
         private int gridSize;
-        private Timer timer;
+        private System.Windows.Forms.Timer timer;
         private int timeLeft;
+        private bool aiVsAiMode;
 
-        public Form1(int gridSize, bool playerVsAI)
+        public Form1(int gridSize, bool playerVsAI, bool aiVsAiMode)
         {
             this.gridSize = gridSize;
-            player1 = new HumanPlayer(CellState.Opponent, "O");
-            if (playerVsAI)
+            this.aiVsAiMode = aiVsAiMode;
+            if (aiVsAiMode)
             {
+                player1 = new AIPlayer(CellState.Opponent, "O");
                 player2 = new AIPlayer(CellState.AI, "X");
             }
             else
             {
-                player2 = new HumanPlayer(CellState.AI, "X");
+                player1 = new HumanPlayer(CellState.Opponent, "O");
+                if (playerVsAI)
+                {
+                    player2 = new AIPlayer(CellState.AI, "X");
+                }
+                else
+                {
+                    player2 = new HumanPlayer(CellState.AI, "X");
+                }
             }
             playerTurn = true; // Zawsze zaczyna gracz
 
@@ -40,6 +51,38 @@ namespace TicTacToe3DApp
             SetFormIcon();
             InitializeGame();
             InitializeTimer();
+
+            if (aiVsAiMode)
+            {
+                StartAiVsAiGame();
+            }
+        }
+
+        private async void StartAiVsAiGame()
+        {
+            while (true)
+            {
+                Player currentPlayer = playerTurn ? player1 : player2;
+                currentPlayer.MakeMove(game, buttons);
+
+                var winningCoords = game.GetWinningCoordinates(currentPlayer.CellState);
+                if (winningCoords != null)
+                {
+                    HighlightWinningLine(winningCoords);
+                    ShowEndGameDialog($"{currentPlayer.Sign} wins!");
+                    break;
+                }
+
+                if (!game.IsMoveLeft())
+                {
+                    ShowEndGameDialog("It's a draw!");
+                    break;
+                }
+
+                playerTurn = !playerTurn;
+
+                await Task.Delay(10);
+            }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -62,7 +105,7 @@ namespace TicTacToe3DApp
 
         private void InitializeTimer()
         {
-            timer = new Timer();
+            timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000; // 1 sekunda
             timer.Tick += Timer_Tick;
             timeLeft = 30; // 30 sekund na ruch
