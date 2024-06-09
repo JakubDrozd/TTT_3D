@@ -171,6 +171,11 @@ namespace TicTacToe3DApp
                 numRows = 2;
                 numCols = gridSize / 2;
             }
+            else if (gridSize == 7)
+            {
+                numRows = 2;
+                numCols = 4;
+            }
             else
             {
                 numRows = 1;
