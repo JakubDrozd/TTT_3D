@@ -42,12 +42,12 @@ namespace TicTacToe3DApp
                     player2 = new HumanPlayer(CellState.AI, "X");
                 }
             }
-            playerTurn = true; // Zawsze zaczyna gracz
+            playerTurn = true;
 
             InitializeComponent();
             this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
-            this.BackColor = System.Drawing.Color.FromArgb(240, 248, 255); // Pastelowy kolor tła (AliceBlue)
-            this.Text = "Kółko i Krzyżyk [3D]"; // Tytuł paska tytułu
+            this.BackColor = System.Drawing.Color.FromArgb(240, 248, 255);
+            this.Text = "Kółko i Krzyżyk [3D]";
             SetFormIcon();
             InitializeGame();
             InitializeTimer();
@@ -92,7 +92,6 @@ namespace TicTacToe3DApp
 
         private void SetFormIcon()
         {
-            // Wczytaj ikonę z zasobów osadzonego pliku
             var assembly = Assembly.GetExecutingAssembly();
             using (Stream stream = assembly.GetManifestResourceStream("TicTacToe3DApp.icon.png"))
             {
@@ -106,9 +105,9 @@ namespace TicTacToe3DApp
         private void InitializeTimer()
         {
             timer = new System.Windows.Forms.Timer();
-            timer.Interval = 1000; // 1 sekunda
+            timer.Interval = 1000;
             timer.Tick += Timer_Tick;
-            timeLeft = 30; // 30 sekund na ruch
+            timeLeft = 30;
             lblTimer.Text = $"Time: {timeLeft}";
         }
 
@@ -123,13 +122,13 @@ namespace TicTacToe3DApp
             {
                 timer.Stop();
                 MessageBox.Show("Time's up! You lose!");
-                ResetGame(); // Można również dodać inne działanie, np. zakończenie gry
+                ResetGame();
             }
         }
 
         private void StartTimer()
         {
-            timeLeft = 30; // Reset the timer
+            timeLeft = 30;
             lblTimer.Text = $"Time: {timeLeft}";
             timer.Start();
         }
@@ -222,7 +221,7 @@ namespace TicTacToe3DApp
                             Dock = DockStyle.Fill,
                             Margin = new Padding(1),
                             Tag = new Tuple<int, int, int>(x, y, z),
-                            BackColor = Color.FromArgb(240, 240, 240), // Łagodniejszy kolor
+                            BackColor = Color.FromArgb(240, 240, 240),
                             Font = new Font("Arial", 16, FontStyle.Bold),
                             FlatStyle = FlatStyle.Flat,
                             FlatAppearance = { BorderColor = Color.Black, BorderSize = 1 }
@@ -244,7 +243,7 @@ namespace TicTacToe3DApp
 
         private void Button_Click(object sender, EventArgs e)
         {
-            StopTimer(); // Zatrzymaj timer przed przetworzeniem ruchu
+            StopTimer();
 
             Button button = sender as Button;
             var (x, y, z) = (Tuple<int, int, int>)button.Tag;
@@ -288,7 +287,7 @@ namespace TicTacToe3DApp
                 playerTurn = !playerTurn;
             }
 
-            StartTimer(); // Uruchom timer dla kolejnego ruchu
+            StartTimer();
         }
 
         private void ShowEndGameDialog(string message)
@@ -307,7 +306,7 @@ namespace TicTacToe3DApp
 
         private void ResetGame()
         {
-            StopTimer(); // Zatrzymaj timer przy resetowaniu gry
+            StopTimer();
 
             game = new TicTacToe3D(gridSize);
             for (int z = 0; z < gridSize; z++)
@@ -318,13 +317,13 @@ namespace TicTacToe3DApp
                     {
                         buttons[x, y, z].Text = "";
                         buttons[x, y, z].Enabled = true;
-                        buttons[x, y, z].BackColor = Color.FromArgb(240, 240, 240); // Łagodniejszy kolor
-                        buttons[x, y, z].BackgroundImage = null; // Usunięcie grafiki tła
+                        buttons[x, y, z].BackColor = Color.FromArgb(240, 240, 240);
+                        buttons[x, y, z].BackgroundImage = null;
                     }
                 }
             }
-            playerTurn = true; // Zawsze zaczyna gracz
-            StartTimer(); // Uruchom timer dla nowej gry
+            playerTurn = true;
+            StartTimer();
         }
     }
 }

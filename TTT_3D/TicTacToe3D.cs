@@ -82,15 +82,10 @@ namespace TicTacToe3DApp
         {
             var directions = new List<(int, int, int)>
             {
-                // Proste linie
                 (1, 0, 0), (0, 1, 0), (0, 0, 1),
-                // Przekątne na płaszczyźnie XY
                 (1, 1, 0), (-1, 1, 0),
-                // Przekątne na płaszczyźnie XZ
                 (1, 0, 1), (-1, 0, 1),
-                // Przekątne na płaszczyźnie YZ
                 (0, 1, 1), (0, -1, 1),
-                // Przekątne 3D
                 (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
                 (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
             };
@@ -134,7 +129,6 @@ namespace TicTacToe3DApp
         {
             int score = 0;
 
-            // Check if AI can win
             gameBoard[x, y, z] = CellState.AI;
             if (IsWinner(CellState.AI))
             {
@@ -142,7 +136,6 @@ namespace TicTacToe3DApp
             }
             gameBoard[x, y, z] = CellState.Empty;
 
-            // Check if AI needs to block player win
             gameBoard[x, y, z] = CellState.Opponent;
             if (IsWinner(CellState.Opponent))
             {
@@ -150,24 +143,23 @@ namespace TicTacToe3DApp
             }
             gameBoard[x, y, z] = CellState.Empty;
 
-            // Add additional heuristics
             score += EvaluateBlockingMove(x, y, z, CellState.Opponent, 3) * 200;
 
             int center = gridSize / 2;
             if (x == center && y == center && z == center)
             {
-                score += 50; // Center of the cube
+                score += 50;
             }
             else if (x == center || y == center || z == center)
             {
-                score += 20; // Center of any face or line
+                score += 20;
             }
 
             if (x == 0 || x == gridSize - 1 ||
                 y == 0 || y == gridSize - 1 ||
                 z == 0 || z == gridSize - 1)
             {
-                score += 10; // Edges
+                score += 10;
             }
 
             score += CountPotentialLines(x, y, z, CellState.AI) * 10;
@@ -180,15 +172,10 @@ namespace TicTacToe3DApp
             int count = 0;
             var directions = new List<(int, int, int)>
     {
-        // Straight lines
         (1, 0, 0), (0, 1, 0), (0, 0, 1),
-        // Diagonals on XY plane
         (1, 1, 0), (-1, 1, 0),
-        // Diagonals on XZ plane
         (1, 0, 1), (-1, 0, 1),
-        // Diagonals on YZ plane
         (0, 1, 1), (0, -1, 1),
-        // 3D Diagonals
         (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
         (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
     };
@@ -226,15 +213,10 @@ namespace TicTacToe3DApp
             int count = 0;
             var directions = new List<(int, int, int)>
             {
-                // Proste linie
                 (1, 0, 0), (0, 1, 0), (0, 0, 1),
-                // Przekątne na płaszczyźnie XY
                 (1, 1, 0), (-1, 1, 0),
-                // Przekątne na płaszczyźnie XZ
                 (1, 0, 1), (-1, 0, 1),
-                // Przekątne na płaszczyźnie YZ
                 (0, 1, 1), (0, -1, 1),
-                // Przekątne 3D
                 (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1),
                 (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1)
             };
